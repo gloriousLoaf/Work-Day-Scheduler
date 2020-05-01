@@ -1,4 +1,4 @@
-/* I added a few things to css temlate. See note below! */
+/* I added a few things to css template. See note below! */
 
 body {
     font-family: 'Open Sans', sans-serif;
@@ -33,9 +33,16 @@ body {
     font-size: 1.25em;
     font-weight: 600;
     padding-top: 5px;
-    margin-bottom: -15px;
+    margin-bottom: -10px;
   }
   
+  /* Clear Schedule button */ 
+  .clear-schedule {
+    margin-top: 15px;
+    margin-bottom: -20px;
+    opacity: 0.75; 
+  }
+
   .description{
     white-space: pre-wrap;
   }

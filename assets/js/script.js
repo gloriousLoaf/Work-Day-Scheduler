@@ -14,7 +14,7 @@ $(document).ready(function () {
     // https://stackoverflow.com/questions/33946925/how-do-i-get-geolocation-in-openweather-api
     let locationIP = "http://ip-api.com/json/?fields=zip";
     $.getJSON(locationIP).done(function (location) {
-        // vars to get just this zip from ip-api JSON
+        // vars to get just the zip from ip-api JSON
         locationIP = location.zip;
         let realIP = locationIP;
         // plug zip info into openweathermap ajax call
@@ -112,7 +112,7 @@ function createSchedule() {
 }
 
 
-/* Saving schedule events */
+/* Saving & Clearing schedule events */
 
 // saveButton() grabs user inputs, loops them into schedule[], store stringified, call createSchedule()
 function saveButton() {
@@ -144,6 +144,21 @@ function colorShift() {
 }
 
 // .saveBtn listener calls saveButton() & colorShift()
-let $clicked = $(".saveBtn")
+let $clicked = $(".saveBtn");
 $clicked.on("click", saveButton);
 $clicked.on("click", colorShift);
+
+// clearSchedule clears local storage, empties entire schedule
+function clearSchedule() {
+    localStorage.clear();
+    // empty schedule[]
+    schedule = [];
+    // reset Obj for new data
+    fillSchedule();
+    // clear out hour-blocks
+    createSchedule();
+}
+
+// .clear-schedule listener calls clearSchedule()
+let $clear = $(".clear-schedule");
+$clear.on("click", clearSchedule);
