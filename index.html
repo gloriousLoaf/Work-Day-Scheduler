@@ -18,6 +18,10 @@
         <h1 class="display-3">Work Day Scheduler</h1>
         <p class="lead">A simple calendar app for scheduling your work day</p>
         <p id="currentDay" class="lead"></p>
+
+        <!-- Added Current weather based on IP data. See top of script.js for details -->
+        <p id="currentWeather"></p>
+
     </header>
 
     <div class="container">
@@ -136,8 +140,15 @@
 
     </div>
 
+    <!-- main jQuery library -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+    <!-- jQuery UI added for color animation, see script.js line 133 -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <!-- moment.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <!-- my script.js -->
     <script src="./assets/js/script.js"></script>
 
 </body>

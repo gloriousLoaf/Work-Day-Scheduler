@@ -1,14 +1,54 @@
-// $(document).ready(function () {              // doc.ready is being a jerk. see line 101 for other setup
+/* On first load or refresh */
+$(document).ready(function () {
+
+    // today's date from moment.js in jumbotron
+    let $todaysDate = moment().format("dddd, MMMM Do YYYY");
+    $("#currentDay").text($todaysDate);
+
+    /* Current weather, based on zip by IP address (I'm pretty proud of this) */
+
+    // IP Geolocation: https://ip-api.com/
+    // This function grabs user zip, feeds it to openweathermaps api, displays weather
+    // Only as accurate as network data (no VPNs etc.)
+    // I really went my own way with this, but thanks to inspiration found at:
+    // https://stackoverflow.com/questions/33946925/how-do-i-get-geolocation-in-openweather-api
+    let locationIP = "http://ip-api.com/json/?fields=zip";
+    $.getJSON(locationIP).done(function (location) {
+        // vars to get just this zip from ip-api JSON
+        locationIP = location.zip;
+        let realIP = locationIP;
+        // plug zip info into openweathermap ajax call
+        let queryURL = "https://api.openweathermap.org/data/2.5/weather?zip=" + realIP + "&units=imperial&appid=c3632a824cb9d8b82f74d0ec35c2639b";
+        $.ajax({
+            url: queryURL,
+            method: "GET"
+        }).then(function (response) {
+            // vars for city name & current temp
+            let city = response.name;
+            let temp = parseInt(response.main.temp);
+            // concat & display!
+            let displayWeather = city + ", " + temp + "°F";
+            $("#currentWeather").text(displayWeather);
+        });
+    });
+
+    // sets up color scheme, see line 54
+    colorCode();
+
+    // schedule logic:
+    // if empty, fillSchedule() sets up a blank template, see line 80
+    if (!localStorage.getItem("events")) {
+        fillSchedule();
+    }
+    // otherwise, createSchedule() pulls local storage info, see line 99
+    createSchedule();
+});
+
+
+/* Creating our schedule */
 
 // $timeBlock used in colorCode() & fillSchedule()
 let $timeBlock = $(".time-block");
-
-// today's date from moment.js in jumbotron
-let $todaysDate = moment().format("dddd, MMMM Do YYYY");
-$("#currentDay").text($todaysDate);
-
-// main array to hold all hour-block info and user entries
-let schedule = [];
 
 // colorCode() dynamically updates classes based on local time
 function colorCode() {
@@ -32,15 +72,17 @@ function colorCode() {
         }
     });
 }
-colorCode();
+
+// main array to hold all hour-block info and user entries
+let schedule = [];
 
 // fillSchedule() creates template Obj for hours & entries, pushes to local storage as JSON
 function fillSchedule() {
-    // loop through time-blocks, create schedEntry{}
+    // loop through time-blocks, create schedEntry{} properties
     $timeBlock.each(function () {
         let $eachTimeBlock = $(this);
         let $hourBlock = parseInt($eachTimeBlock.attr("hour-block"));
-        // holds hour-block info & user input for each entry
+        // hour holds hour-block info, entry creates a blank string (for now)
         let schedEntry = {
             hour: $hourBlock,
             entry: "",
@@ -52,183 +94,56 @@ function fillSchedule() {
     // store stringified schedule[]
     localStorage.setItem("events", JSON.stringify(schedule));
 }
-fillSchedule();
 
 // createSchedule() uses info from fillSchedule()
 function createSchedule() {
-    // pull info stored by fillSchedule(), put into schedule as JSON
+    // pull info stored by fillSchedule(), parse back to Obj, put into schedule
     schedule = localStorage.getItem("events");
     schedule = JSON.parse(schedule);
-
-    // I really want this to work. MDN research at work!
-    let i;
-    for (let [hour, entry] of Object.entries(schedule)) {
-        let eachHour = hour[i];
-        let eachEntry = entry[i];
-        // selector that grabs hour-block by eachHour value and adds eachEntry as child
+    // fill new vars with properties of Obj
+    for (let i = 0; i < schedule.length; i++) {
+        let eachHour = schedule[i].hour;
+        let eachEntry = schedule[i].entry;
+        // selector that grabs hour-block by eachHour value and adds eachEntry value to child textarea
         $("[hour-block=" + eachHour + "]").children("textarea").val(eachEntry);
+        // $("textarea").css("color", "white");
     }
     console.log(schedule);
 }
 
-// saveButton() grabs hour & entry, loops them into schedule[], store stringified, call createSchedule()
+
+/* Saving schedule events */
+
+// saveButton() grabs user inputs, loops them into schedule[], store stringified, call createSchedule()
 function saveButton() {
-    // some notes....                                                   // here!
+    // vars to grab user entry and where it happened
     let getHourBlock = $(this).parent().attr("hour-block");
     let getEntry = (($(this).parent()).children("textarea")).val();
-
-    // if (!localStorage.getItem("events")) {
-
-    // find schedule index that corresponds to hour-block, updates that event with user input
+    // find schedule[] index that corresponds to hour-block, updates entry value with user input
     for (i = 0; i < schedule.length; i++) {
-        if (schedule[i].hour == getHourBlock) {              // can i for-of this, or .each()?
+        if (schedule[i].hour == getHourBlock) {
             schedule[i].entry = getEntry;
         }
     }
     // store stringified schedule[]
     localStorage.setItem("events", JSON.stringify(schedule));
     createSchedule();
-    // }
 }
 
-// // .saveBtn listener
+// jQuery UI! colorShift() shows visual confirmation of saved entry
+function colorShift() {
+    // get the sibling textarea of specific saveBtn click
+    let $colorClick = $(this).siblings("textarea");
+    // animate color from black to white to black
+    $colorClick.animate({
+        color: "#fff",
+    }, 600);
+    $colorClick.animate({
+        color: "#000",
+    }, 600);
+}
+
+// .saveBtn listener calls saveButton() & colorShift()
 let $clicked = $(".saveBtn")
 $clicked.on("click", saveButton);
-
-
-// we're setup. now check local storage. if empty, call fillSchedule(), else createSchedule()
-$(document).ready(function () {
-    //     if (localStorage.getItem("events")) {
-    //         fillSchedule();
-    //     }
-    //     else {
-    //         createSchedule();
-    //     }
-    // });
-    // $(document).ready(function () {
-    let check = localStorage.getItem("events");
-    if (check = null) {
-        fillSchedule();
-    }
-    else if (localStorage.getItem("events")) {
-        createSchedule();
-    }
-
-});
-
-
-
-// CODE GRAVEYARD
-
-// begin older setup
-// $(document).ready(function () {
-
-//     // $timeBlock used in colorCode() & fillSchedule()
-//     let $timeBlock = $(".time-block");
-
-//     // today's date from moment.js in jumbotron
-//     let $todaysDate = moment().format("dddd, MMMM Do YYYY");
-//     $("#currentDay").text($todaysDate);
-
-//     // main array to hold all hour-block info and user entries
-//     let schedule = [];
-
-//     // colorCode() dynamically updates classes based on local time
-//     function colorCode() {
-//         // for each block, add appropriate class, remove others
-//         $timeBlock.each(function () {
-//             // current hour from moment.js
-//             let now = moment().format("H");
-//             let $colorBlock = $(this);
-//             let $hourBlock = parseInt($colorBlock.attr("hour-block"));
-//             // past
-//             if ($hourBlock < now) {
-//                 $colorBlock.addClass("past").removeClass("present future");
-//             }
-//             // present
-//             else if ($hourBlock == now) {
-//                 $colorBlock.addClass("present").removeClass("past future");
-//             }
-//             // future
-//             else if ($hourBlock > now) {
-//                 $colorBlock.addClass("future").removeClass("past present");
-//             }
-//         });
-//     }
-//     // call it!
-//     colorCode();
-
-//     // fillSchedule() creates template Obj for hours & entries, pushes to local storage as JSON
-//     function fillSchedule() {
-//         // loop through time-blocks, create schedEntry{}
-//         $timeBlock.each(function () {
-//             let $eachTimeBlock = $(this);
-//             let $hourBlock = parseInt($eachTimeBlock.attr("hour-block"));
-//             // holds hour-block info & user input for each entry
-//             let schedEntry = {
-//                 hour: $hourBlock,
-//                 entry: "",
-//             }
-//             // push Obj to schedule[]
-//             schedule.push(schedEntry);
-//             console.log(schedEntry)
-//         });
-//         // store stringified schedule[]
-//         localStorage.setItem("events", JSON.stringify(schedule));
-//     }
-
-//     // createSchedule() uses info from fillSchedule()
-//     function createSchedule() {
-//         // pull stored info from fillSchedule(), put into schedule as JSON
-//         schedule = localStorage.getItem("events");
-//         schedule = JSON.parse(schedule);
-
-//         // loop through schedule[] and put unique schedEntry info into vars
-//         // for (let i = 0; i < schedule.length; i++) {
-//         //     let eachHour = schedule[i].hour;
-//         //     let eachEntry = schedule[i].entry;
-//         //     // selector that grabs hour-block by eachHour value and adds eachEntry as child
-//         //     $("[hour-block=" + eachHour + "]").children("textarea").val(eachEntry);
-//         // }
-
-//         // above commented-out for-loop is cool, but I really want to use this. MDN research at work!
-//         for (const [key, value] of Object.entries(schedule)) {
-//             let eachHour = key[i];
-//             let eachEntry = value[i];
-//             // selector that grabs hour-block by eachHour value and adds eachEntry as child
-//             $("[hour-block=" + eachHour + "]").children("textarea").val(eachEntry);
-//         }
-//         console.log(schedule);
-//     }
-
-//     // check local storage, call fillSchedule() or createSchedule()
-//     if (!localStorage.getItem("tasks")) {
-//         fillSchedule();
-//     }
-//     // else {
-//     // create schedule from local storage
-//     createSchedule();
-//     // }
-
-//     // saveButton() grabs hour & entry, loops them into schedule[], store stringified, call createSchedule()
-//     function saveButton() {
-//         // some notes....                                                   // here!
-//         let getHourBlock = $(this).parent().attr("hour-block");
-//         let getEntry = (($(this).parent()).children("textarea")).val();
-
-//         // find schedule index that corresponds to hour-block, updates that event with user input
-//         for (i = 0; i < schedule.length; i++) {
-//             if (schedule[i].hour == getHourBlock) {              // can i for-of this, or .each()?
-//                 schedule[i].entry = getEntry;
-//             }
-//         }
-//         // store stringified schedule[]
-//         localStorage.setItem("events", JSON.stringify(schedule));
-//         createSchedule();
-//     }
-
-//     // .saveBtn listener
-//     let $clicked = $(".saveBtn")
-//     $clicked.on("click", saveButton);
-
-// });
+$clicked.on("click", colorShift);

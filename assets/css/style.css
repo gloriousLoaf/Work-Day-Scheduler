@@ -5,6 +5,11 @@ body {
     font-size: 16px;
     line-height: 1;
   }
+
+  /* too wide, time & save button too close to edge of display */ 
+  .container {
+    max-width: 85%;
+  }
   
   textarea{
     background: transparent;
@@ -21,6 +26,14 @@ body {
     color: black;
     border-radius: 0;
     border-bottom: 10px solid black;
+  }
+
+  /* Current Weather */ 
+  #currentWeather {
+    font-size: 1.25em;
+    font-weight: 600;
+    padding-top: 5px;
+    margin-bottom: -15px;
   }
   
   .description{
