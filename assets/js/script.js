@@ -5,32 +5,34 @@ $(document).ready(function () {
     let $todaysDate = moment().format("dddd, MMMM Do YYYY");
     $("#currentDay").text($todaysDate);
 
-    /* Current weather, based on zip by IP address (I'm pretty proud of this) */
-
-    // IP Geolocation: https://ip-api.com/
-    // This function grabs user zip, feeds it to openweathermaps api, displays weather
+    /* Current weather, based on city by IP address */
+    // IP Geolocation: https://ipapi.co/
+    // This function grabs user city, feeds it to openweathermaps api, displays weather
     // Only as accurate as network data (no VPNs etc.)
-    // I really went my own way with this, but thanks to inspiration found at:
-    // https://stackoverflow.com/questions/33946925/how-do-i-get-geolocation-in-openweather-api
-    let locationIP = "http://ip-api.com/json/?fields=zip";
-    $.getJSON(locationIP).done(function (location) {
-        // vars to get just the zip from ip-api JSON
-        locationIP = location.zip;
-        let realIP = locationIP;
-        // plug zip info into openweathermap ajax call
-        let queryURL = "https://api.openweathermap.org/data/2.5/weather?zip=" + realIP + "&units=imperial&appid=c3632a824cb9d8b82f74d0ec35c2639b";
-        $.ajax({
-            url: queryURL,
-            method: "GET"
-        }).then(function (response) {
-            // vars for city name & current temp
-            let city = response.name;
-            let temp = parseInt(response.main.temp);
-            // concat & display!
-            let displayWeather = city + ", " + temp + "°F";
-            $("#currentWeather").text(displayWeather);
+    let userCity = "";
+    function ajaxCity() {
+        // first, ipapi.co to get state (region) from user IP address
+        $.get('https://ipapi.co/city/', function (data) {
+            // need a var to hold value of data, in proper case
+            userCity = (data.charAt(0).toUpperCase() + data.substr(1).toLowerCase());
+            console.log(userCity);
+            // plug city info into openweathermap ajax call
+            let queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + userCity + "&units=imperial&appid=c3632a824cb9d8b82f74d0ec35c2639b";
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function (response) {
+                // vars for city name & current temp
+                let city = response.name;
+                let temp = parseInt(response.main.temp);
+                // concat & display!
+                let displayWeather = city + ", " + temp + "°F";
+                $("#currentWeather").text(displayWeather);
+            });
         });
-    });
+    };
+    // call it
+    ajaxCity();
 
     // sets up color scheme, see line 54
     colorCode();
@@ -106,7 +108,6 @@ function createSchedule() {
         let eachEntry = schedule[i].entry;
         // selector that grabs hour-block by eachHour value and adds eachEntry value to child textarea
         $("[hour-block=" + eachHour + "]").children("textarea").val(eachEntry);
-        // $("textarea").css("color", "white");
     }
     console.log(schedule);
 }
